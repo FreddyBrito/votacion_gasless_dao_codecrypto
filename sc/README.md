@@ -1,66 +1,73 @@
-## Foundry
+# DAO Voting — Smart Contracts
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+Solidity smart contracts for the DAO Gasless Voting system.
 
-Foundry consists of:
+## Contracts
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+### MinimalForwarder
 
-## Documentation
+EIP-2771 meta-transaction forwarder. Users sign typed data off-chain; a relayer submits the signature via `execute()`.
 
-https://book.getfoundry.sh/
+- Built on OpenZeppelin `EIP712` and `Nonces`
+- ECDSA signature verification
+- Per-user nonce tracking for replay protection
 
-## Usage
+### DAOVoting
 
-### Build
+On-chain governance contract inheriting `ERC2771Context`:
 
-```shell
-$ forge build
+- **Fund**: `fundDAO()` — deposit ETH, gain voting power
+- **Propose**: `createProposal(recipient, amount, deadline)` — requires >= 10% of total balance
+- **Vote**: `vote(proposalId, voteType)` — 3 options: For, Against, Abstain
+- **Execute**: `executeProposal(proposalId)` — after deadline + security period if votes For > Against
+
+## Setup
+
+```bash
+forge install
 ```
 
-### Test
+## Build
 
-```shell
-$ forge test
+```bash
+forge build
 ```
 
-### Format
+## Test
 
-```shell
-$ forge fmt
+```bash
+forge test -vv
 ```
 
-### Gas Snapshots
+27 tests covering:
+- Funding
+- Proposal creation (with balance validation)
+- Voting (normal + gasless via forwarder)
+- Vote changing before deadline
+- Proposal execution (approved + defeated)
+- Edge cases (nonexistent proposals, expired deadlines, double execution)
 
-```shell
-$ forge snapshot
+## Coverage
+
+```bash
+forge coverage
 ```
 
-### Anvil
+| Contract         | Lines   | Statements | Branches | Functions |
+|------------------|---------|------------|----------|-----------|
+| DAOVoting.sol    | 97%     | 96%        | 77%      | 100%      |
+| MinimalForwarder | 77%     | 63%        | 29%      | 75%       |
+| **Total**        | **83%** | **77%**    | **66%**  | **88%**   |
 
-```shell
-$ anvil
+## Deploy
+
+```bash
+export PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+forge script script/DeployDAO.s.sol --broadcast --rpc-url http://127.0.0.1:8545 --private-key $PRIVATE_KEY
 ```
 
-### Deploy
+## Stack
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+- Solidity 0.8.20
+- Foundry (forge, anvil)
+- OpenZeppelin Contracts v5

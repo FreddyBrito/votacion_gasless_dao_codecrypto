@@ -1,93 +1,172 @@
-# Votacion Gasless Dao Codecrypto
+# DAO Gasless Voting — Codecrypto
 
+A complete DAO application that allows users to vote on proposals **without paying gas**, using EIP-2771 meta-transactions.
 
-
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Architecture
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/freddybrito1/votacion_gasless_dao_codecrypto.git
-git branch -M main
-git push -uf origin main
+┌─────────────────────────────────────────────────────────────┐
+│                        Frontend (Next.js)                    │
+│  ConnectWallet · FundingPanel · CreateProposal · VoteButtons │
+└────────────────────────┬────────────────────────────────────┘
+                         │ EIP-712 signed meta-tx
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   Relayer API (/api/relay)                   │
+│              Validates signature → forwards to forwarder     │
+└────────────────────────┬────────────────────────────────────┘
+                         │ execute()
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  MinimalForwarder (EIP-2771)                 │
+│         Verifies sig → appends sender → calls DAO            │
+└────────────────────────┬────────────────────────────────────┘
+                         │ _msgSender() = original user
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     DAOVoting Contract                       │
+│    fundDAO · createProposal · vote · executeProposal         │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## Integrate with your tools
+## Tech Stack
 
-* [Set up project integrations](https://gitlab.com/freddybrito1/votacion_gasless_dao_codecrypto/-/settings/integrations)
+| Layer    | Technology               |
+|----------|--------------------------|
+| Contracts| Solidity 0.8.20, Foundry, OpenZeppelin |
+| Frontend | Next.js 15, TypeScript, Tailwind CSS, ethers.js v6 |
+| Meta-Tx  | EIP-2771, EIP-712 typed data signing |
+| Network  | Anvil (local)            |
 
-## Collaborate with your team
+## Prerequisites
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+- [Foundry](https://book.getfoundry.sh/) (forge, anvil)
+- Node.js >= 18
+- MetaMask browser extension
 
-## Test and Deploy
+## Quick Start
 
-Use the built-in continuous integration in GitLab.
+```bash
+# Clone and setup
+git clone <repo-url>
+cd votacion_gasless_dao_codecrypto
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+# Install dependencies
+cd sc && forge install && cd ..
+cd web && npm install && cd ..
 
-***
+# Start everything (Anvil + deploy + frontend)
+./start.sh
+```
 
-# Editing this README
+The script will:
+1. Check if Anvil is running — start it if not
+2. Deploy MinimalForwarder and DAOVoting contracts
+3. Update `web/.env.local` with deployed addresses
+4. Start the frontend at `http://localhost:3000`
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## Manual Setup
 
-## Suggestions for a good README
+### 1. Start Anvil
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+```bash
+anvil
+```
 
-## Name
-Choose a self-explaining name for your project.
+### 2. Deploy Contracts
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+```bash
+cd sc
+forge install
+export PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+forge script script/DeployDAO.s.sol --broadcast --rpc-url http://127.0.0.1:8545 --private-key $PRIVATE_KEY
+```
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+### 3. Configure Frontend
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+Update `web/.env.local` with the deployed contract addresses:
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+```
+NEXT_PUBLIC_DAO_ADDRESS=0x...
+NEXT_PUBLIC_FORWARDER_ADDRESS=0x...
+NEXT_PUBLIC_CHAIN_ID=31337
+NEXT_PUBLIC_RPC_URL=http://127.0.0.1:8545
+RELAYER_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+RELAYER_ADDRESS=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+```
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+### 4. Start Frontend
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+```bash
+cd web
+npm run dev
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+## Smart Contracts
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+### MinimalForwarder (`sc/src/MinimalForwarder.sol`)
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+EIP-2771 meta-transaction forwarder:
+- `verify(req, signature)` — validates a signed forward request
+- `execute(req, signature)` — executes the meta-transaction
+- `getNonce(address)` — returns current nonce (replay protection)
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+### DAOVoting (`sc/src/DAOVoting.sol`)
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+Governance contract inheriting `ERC2771Context`:
+- `fundDAO()` — deposit ETH (becomes voting power)
+- `createProposal(recipient, amount, deadline)` — requires >= 10% of total balance
+- `vote(proposalId, voteType)` — gasless voting via forwarder (For / Against / Abstain)
+- `executeProposal(proposalId)` — executes after deadline + security period if approved
+
+### Tests
+
+```bash
+cd sc
+forge test -vv        # Run all tests (27 tests)
+forge coverage        # Coverage report (83%+ total)
+```
+
+## Frontend Components
+
+| Component       | Description                              |
+|-----------------|------------------------------------------|
+| `ConnectWallet` | MetaMask connection with chain switching |
+| `FundingPanel`  | ETH deposit with balance display         |
+| `CreateProposal`| Proposal form with 10% balance check     |
+| `ProposalList`  | Fetches and displays all proposals       |
+| `ProposalCard`  | Proposal details, votes, state, execute  |
+| `VoteButtons`   | Gasless voting via EIP-712 + relayer     |
+
+## API Routes
+
+| Endpoint       | Method | Description                              |
+|----------------|--------|------------------------------------------|
+| `/api/relay`   | POST   | Relays signed meta-transactions          |
+| `/api/execute` | POST   | Scans and executes eligible proposals    |
+
+## Voting Flow
+
+1. User clicks vote button in the UI
+2. Frontend builds EIP-712 typed data with the vote
+3. User signs with MetaMask (no gas needed)
+4. Signed request is sent to `/api/relay`
+5. Relayer submits the transaction via MinimalForwarder
+6. MinimalForwarder verifies signature and calls DAOVoting
+7. DAOVoting records the vote using `_msgSender()` (original user)
+
+## Commit Convention
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+<type>(<scope>): <description>
+```
+
+Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`, `ci`, `revert`
+
+Scopes: `dao`, `forwarder`, `frontend`, `relayer`, `config`, `scripts`
 
 ## License
-For open source projects, say how it is licensed.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+MIT
