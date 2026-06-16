@@ -39,7 +39,7 @@ esac
 
 echo -e "${CYAN}[INFO]${NC} Advancing time by ${AMOUNT} ${UNIT} (${SECONDS_TOTAL}s)..."
 
-cast evm_increaseTime "$SECONDS_TOTAL" --rpc-url "$ANVIL_URL" > /dev/null
-cast evm_mine --rpc-url "$ANVIL_URL" > /dev/null
+cast rpc evm_increaseTime "$SECONDS_TOTAL" --rpc-url "$ANVIL_URL" > /dev/null
+cast rpc evm_mine --rpc-url "$ANVIL_URL" > /dev/null
 
 echo -e "${GREEN}[OK]${NC} Time advanced. New block mined."
