@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useWeb3 } from "@/lib/web3";
 import { parseEther, formatEther } from "ethers";
 
-export default function CreateProposal() {
+export default function CreateProposal({ onCreated }: { onCreated?: () => void }) {
   const { account, daoContract, userBalance, totalFunds, refreshBalances } = useWeb3();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -29,6 +29,7 @@ export default function CreateProposal() {
       const tx = await daoContract.createProposal(title, description, recipient, parseEther(amount), deadline);
       await tx.wait();
       setTxStatus("success");
+      onCreated?.();
       setTitle("");
       setDescription("");
       setRecipient("");

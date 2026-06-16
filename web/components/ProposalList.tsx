@@ -6,7 +6,7 @@ import { Contract, JsonRpcProvider } from "ethers";
 import { DAO_ADDRESS, DAO_ABI, Proposal, RPC_URL } from "@/lib/contracts";
 import ProposalCard from "./ProposalCard";
 
-export default function ProposalList() {
+export default function ProposalList({ refreshKey }: { refreshKey?: number }) {
   const { account, daoContract } = useWeb3();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,8 +44,9 @@ export default function ProposalList() {
   }, []);
 
   useEffect(() => {
+    setLoading(true);
     fetchProposals();
-  }, [fetchProposals]);
+  }, [fetchProposals, refreshKey]);
 
   if (loading) {
     return (
