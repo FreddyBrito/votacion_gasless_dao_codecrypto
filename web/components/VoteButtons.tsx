@@ -13,6 +13,27 @@ interface VoteButtonsProps {
   onVoted: () => void;
 }
 
+const VOTE_STYLES: Record<number, { solid: string; solidHover: string; selected: string; label: string }> = {
+  [VoteType.For]: {
+    solid: "bg-[#16a34a] text-white hover:bg-[#15803d]",
+    solidHover: "hover:bg-[#15803d]",
+    selected: "bg-[#15803d] text-white",
+    label: "For",
+  },
+  [VoteType.Against]: {
+    solid: "bg-[#dc2626] text-white hover:bg-[#b91c1c]",
+    solidHover: "hover:bg-[#b91c1c]",
+    selected: "bg-[#b91c1c] text-white",
+    label: "Against",
+  },
+  [VoteType.Abstain]: {
+    solid: "bg-[#d97706] text-white hover:bg-[#b45309]",
+    solidHover: "hover:bg-[#b45309]",
+    selected: "bg-[#b45309] text-white",
+    label: "Abstain",
+  },
+};
+
 export default function VoteButtons({ proposalId, hasVoted, currentVote, isActive, onVoted }: VoteButtonsProps) {
   const { account, provider } = useWeb3();
   const [loading, setLoading] = useState<number | null>(null);
@@ -43,9 +64,9 @@ export default function VoteButtons({ proposalId, hasVoted, currentVote, isActiv
   };
 
   const buttons = [
-    { type: VoteType.For, label: "For" },
-    { type: VoteType.Against, label: "Against" },
-    { type: VoteType.Abstain, label: "Abstain" },
+    { type: VoteType.For, ...VOTE_STYLES[VoteType.For] },
+    { type: VoteType.Against, ...VOTE_STYLES[VoteType.Against] },
+    { type: VoteType.Abstain, ...VOTE_STYLES[VoteType.Abstain] },
   ];
 
   return (
@@ -58,10 +79,10 @@ export default function VoteButtons({ proposalId, hasVoted, currentVote, isActiv
               key={btn.type}
               onClick={() => handleVote(btn.type)}
               disabled={loading !== null}
-              className={`text-[14px] font-medium py-2 px-4 rounded-full transition-colors cursor-pointer disabled:bg-[#efefef] disabled:text-[#afafaf] ${
+              className={`text-[14px] font-medium py-2 px-4 rounded-full transition-colors cursor-pointer disabled:opacity-50 ${
                 isSelected
-                  ? "bg-black text-white"
-                  : "bg-[#efefef] text-black hover:bg-[#e2e2e2]"
+                  ? btn.selected
+                  : btn.solid
               }`}
             >
               {loading === btn.type ? (

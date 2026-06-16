@@ -111,26 +111,33 @@ export default function ProposalCard({ proposal, onRefresh }: ProposalCardProps)
         </div>
       </div>
 
-      <div className="bg-[#f3f3f3] rounded-xl p-4 mb-3">
-        <div className="grid grid-cols-3 gap-2 text-center text-[14px]">
-          <div>
-            <p className="font-bold text-[18px]">{Number(proposal.votesFor)}</p>
-            <p className="text-[12px] text-[#afafaf]">For</p>
-          </div>
-          <div>
-            <p className="font-bold text-[18px]">{Number(proposal.votesAgainst)}</p>
-            <p className="text-[12px] text-[#afafaf]">Against</p>
-          </div>
-          <div>
-            <p className="font-bold text-[18px]">{Number(proposal.votesAbstain)}</p>
-            <p className="text-[12px] text-[#afafaf]">Abstain</p>
-          </div>
+      <div className="grid grid-cols-3 gap-2 text-center text-[14px] mb-3">
+        <div className="bg-[#dcfce7] rounded-xl p-3">
+          <p className="font-bold text-[18px] text-[#16a34a]">{Number(proposal.votesFor)}</p>
+          <p className="text-[12px] text-[#15803d]">For</p>
+        </div>
+        <div className="bg-[#fee2e2] rounded-xl p-3">
+          <p className="font-bold text-[18px] text-[#dc2626]">{Number(proposal.votesAgainst)}</p>
+          <p className="text-[12px] text-[#b91c1c]">Against</p>
+        </div>
+        <div className="bg-[#fef3c7] rounded-xl p-3">
+          <p className="font-bold text-[18px] text-[#d97706]">{Number(proposal.votesAbstain)}</p>
+          <p className="text-[12px] text-[#b45309]">Abstain</p>
         </div>
       </div>
 
       {hasVoted && (
         <p className="text-[12px] text-[#afafaf] mb-2">
-          Your vote: <span className="font-medium text-black">{VOTE_LABELS[userVote]}</span>
+          Your vote:{" "}
+          <span
+            className="font-medium px-2 py-0.5 rounded-full text-[12px]"
+            style={{
+              backgroundColor: userVote === VoteType.For ? "#dcfce7" : userVote === VoteType.Against ? "#fee2e2" : "#fef3c7",
+              color: userVote === VoteType.For ? "#16a34a" : userVote === VoteType.Against ? "#dc2626" : "#d97706",
+            }}
+          >
+            {VOTE_LABELS[userVote]}
+          </span>
         </p>
       )}
 
