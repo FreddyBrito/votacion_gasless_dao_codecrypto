@@ -14,10 +14,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SC_DIR="${SCRIPT_DIR}/sc"
 WEB_DIR="${SCRIPT_DIR}/web"
 
-log()  { echo -e "${CYAN}[启动]${NC} $1"; }
-ok()   { echo -e "${GREEN}[✓]${NC} $1"; }
-warn() { echo -e "${YELLOW}[!]${NC} $1"; }
-err()  { echo -e "${RED}[✗]${NC} $1"; }
+log()  { echo -e "${CYAN}[INFO]${NC} $1"; }
+ok()   { echo -e "${GREEN}[OK]${NC} $1"; }
+warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+err()  { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # ─── 1. Check / Start Anvil ──────────────────────────────
 check_anvil() {
@@ -31,19 +31,19 @@ check_anvil() {
 }
 
 if check_anvil; then
-  ok "Anvil ya está corriendo en puerto ${ANVIL_PORT}"
+  ok "Anvil already running on port ${ANVIL_PORT}"
 else
-  log "Anvil no detectado — levantando..."
+  log "Anvil not detected — starting..."
   anvil --port "${ANVIL_PORT}" --silent &
   ANVIL_PID=$!
 
   for i in {1..10}; do
     if check_anvil; then
-      ok "Anvil listo (PID: ${ANVIL_PID})"
+      ok "Anvil ready (PID: ${ANVIL_PID})"
       break
     fi
     if [ "$i" -eq 10 ]; then
-      err "Anvil no arrancó en 10 segundos"
+      err "Anvil failed to start within 10 seconds"
       exit 1
     fi
     sleep 1
@@ -51,19 +51,21 @@ else
 fi
 
 # ─── 2. Deploy Contracts ─────────────────────────────────
-log "Desplegando contratos..."
+log "Deploying contracts..."
+
+export PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 
 DEPLOY_OUTPUT=$(cd "${SC_DIR}" && forge script script/DeployDAO.s.sol \
   --broadcast \
   --rpc-url "${ANVIL_URL}" \
-  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
+  --private-key "${PRIVATE_KEY}" \
   2>&1)
 
-FORWARDER_ADDRESS=$(echo "${DEPLOY_OUTPUT}" | grep -oP 'MinimalForwarder deployed at: \K0x[a-fA-F0-9]{40}' | head -1)
-DAO_ADDRESS=$(echo "${DEPLOY_OUTPUT}" | grep -oP 'DAOVoting deployed at: \K0x[a-fA-F0-9]{40}' | head -1)
+FORWARDER_ADDRESS=$(echo "${DEPLOY_OUTPUT}" | grep -E 'MinimalForwarder deployed at:' | sed 's/.*0x/0x/' | head -1 | tr -d '[:space:]')
+DAO_ADDRESS=$(echo "${DEPLOY_OUTPUT}" | grep -E 'DAOVoting deployed at:' | sed 's/.*0x/0x/' | head -1 | tr -d '[:space:]')
 
 if [ -z "${FORWARDER_ADDRESS}" ] || [ -z "${DAO_ADDRESS}" ]; then
-  err "No se pudieron extraer las direcciones de los contratos"
+  err "Could not extract contract addresses"
   echo "${DEPLOY_OUTPUT}"
   exit 1
 fi
@@ -79,13 +81,12 @@ NEXT_PUBLIC_DAO_ADDRESS=${DAO_ADDRESS}
 NEXT_PUBLIC_FORWARDER_ADDRESS=${FORWARDER_ADDRESS}
 NEXT_PUBLIC_CHAIN_ID=31337
 NEXT_PUBLIC_RPC_URL=${ANVIL_URL}
-RELAYER_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+RELAYER_PRIVATE_KEY=${PRIVATE_KEY}
 RELAYER_ADDRESS=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 EOF
 
-ok ".env.local actualizado"
+ok ".env.local updated"
 
 # ─── 4. Start Frontend ───────────────────────────────────
-log "Levantando frontend..."
-cd "${WEB_DIR}"
-npm run dev
+log "Starting frontend on http://localhost:3000 ..."
+cd "${WEB_DIR}" && exec npm run dev
