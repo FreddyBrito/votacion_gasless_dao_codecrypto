@@ -32,46 +32,50 @@ export default function VoteButtons({ proposalId, hasVoted, currentVote, isActiv
       if (result.success) {
         onVoted();
       } else {
-        setError("La transacción falló en el relayer");
+        setError("Transaction failed in the relayer");
       }
     } catch (e: any) {
       console.error(e);
-      setError(e.message || "Error al votar");
+      setError(e.message || "Error voting");
     } finally {
       setLoading(null);
     }
   };
 
   const buttons = [
-    { type: VoteType.For, label: "A Favor", color: "bg-green-600 hover:bg-green-700", icon: "+" },
-    { type: VoteType.Against, label: "En Contra", color: "bg-red-600 hover:bg-red-700", icon: "-" },
-    { type: VoteType.Abstain, label: "Abstención", color: "bg-gray-500 hover:bg-gray-600", icon: "—" },
+    { type: VoteType.For, label: "For" },
+    { type: VoteType.Against, label: "Against" },
+    { type: VoteType.Abstain, label: "Abstain" },
   ];
 
   return (
     <div>
       <div className="flex gap-2">
-        {buttons.map((btn) => (
-          <button
-            key={btn.type}
-            onClick={() => handleVote(btn.type)}
-            disabled={loading !== null}
-            className={`${btn.color} disabled:bg-gray-300 text-white text-sm font-semibold py-1.5 px-3 rounded-lg transition-colors cursor-pointer flex items-center gap-1`}
-          >
-            {loading === btn.type ? (
-              <span className="animate-spin">⟳</span>
-            ) : (
-              <span>{btn.icon}</span>
-            )}
-            {btn.label}
-            {hasVoted && currentVote === btn.type && (
-              <span className="text-xs">(actual)</span>
-            )}
-          </button>
-        ))}
+        {buttons.map((btn) => {
+          const isSelected = hasVoted && currentVote === btn.type;
+          return (
+            <button
+              key={btn.type}
+              onClick={() => handleVote(btn.type)}
+              disabled={loading !== null}
+              className={`text-[14px] font-medium py-2 px-4 rounded-full transition-colors cursor-pointer disabled:bg-[#efefef] disabled:text-[#afafaf] ${
+                isSelected
+                  ? "bg-black text-white"
+                  : "bg-[#efefef] text-black hover:bg-[#e2e2e2]"
+              }`}
+            >
+              {loading === btn.type ? (
+                <span className="animate-spin inline-block">...</span>
+              ) : (
+                btn.label
+              )}
+              {isSelected && <span className="ml-1 text-[12px]">(current)</span>}
+            </button>
+          );
+        })}
       </div>
-      <p className="text-xs text-gray-400 mt-1">Votación gasless — no pagas gas</p>
-      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+      <p className="text-[12px] text-[#afafaf] mt-1.5">Gasless voting — no gas fees</p>
+      {error && <p className="text-[14px] text-[#5e5e5e] mt-1">{error}</p>}
     </div>
   );
 }

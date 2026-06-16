@@ -32,17 +32,17 @@ export default function FundingPanel() {
   if (!account) return null;
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
-      <h2 className="text-xl font-bold mb-4">Financiar DAO</h2>
+    <div className="bg-white rounded-2xl p-6">
+      <h2 className="text-[24px] font-bold mb-4">Fund DAO</h2>
 
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="bg-gray-50 rounded-lg p-3">
-          <p className="text-xs text-gray-500 uppercase">Tu balance</p>
-          <p className="text-lg font-bold font-mono">{formatEther(userBalance)} ETH</p>
+        <div className="bg-[#efefef] rounded-xl p-4">
+          <p className="text-[12px] text-[#5e5e5e] uppercase tracking-wide">Your balance</p>
+          <p className="text-[18px] font-bold mt-1">{formatEther(userBalance)} ETH</p>
         </div>
-        <div className="bg-gray-50 rounded-lg p-3">
-          <p className="text-xs text-gray-500 uppercase">Total DAO</p>
-          <p className="text-lg font-bold font-mono">{formatEther(totalFunds)} ETH</p>
+        <div className="bg-[#efefef] rounded-xl p-4">
+          <p className="text-[12px] text-[#5e5e5e] uppercase tracking-wide">DAO total</p>
+          <p className="text-[18px] font-bold mt-1">{formatEther(totalFunds)} ETH</p>
         </div>
       </div>
 
@@ -51,25 +51,25 @@ export default function FundingPanel() {
           type="number"
           step="0.01"
           min="0"
-          placeholder="Cantidad ETH"
+          placeholder="ETH amount"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 bg-[#efefef] rounded-lg px-4 py-2.5 text-[16px] focus:outline-none focus:ring-2 focus:ring-black"
         />
         <button
           onClick={handleFund}
           disabled={loading || !amount || Number(amount) <= 0}
-          className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors cursor-pointer"
+          className="bg-black hover:bg-[#282828] disabled:bg-[#afafaf] text-white text-[16px] font-medium py-2.5 px-5 rounded-full transition-colors cursor-pointer"
         >
-          {loading ? "Enviando..." : "Depositar"}
+          {loading ? "Sending..." : "Deposit"}
         </button>
       </div>
 
       {txStatus === "success" && (
-        <p className="text-green-600 text-sm mt-2">Fondos depositados correctamente</p>
+        <p className="text-[14px] text-[#5e5e5e] mt-2">Funds deposited successfully</p>
       )}
       {txStatus === "error" && (
-        <p className="text-red-600 text-sm mt-2">Error al depositar fondos</p>
+        <p className="text-[14px] text-[#5e5e5e] mt-2">Error depositing funds</p>
       )}
     </div>
   );

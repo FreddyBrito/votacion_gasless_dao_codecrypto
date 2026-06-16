@@ -33,9 +33,9 @@ export default function CreateProposal() {
       console.error(e);
       setTxStatus("error");
       if (e.reason?.includes("NotProposer")) {
-        setErrorMsg("Necesitas al menos el 10% del balance total para crear propuestas");
+        setErrorMsg("You need at least 10% of the total balance to create proposals");
       } else {
-        setErrorMsg(e.reason || e.message || "Error al crear propuesta");
+        setErrorMsg(e.reason || e.message || "Error creating proposal");
       }
     } finally {
       setLoading(false);
@@ -45,33 +45,33 @@ export default function CreateProposal() {
   if (!account) return null;
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
-      <h2 className="text-xl font-bold mb-4">Crear Propuesta</h2>
+    <div className="bg-white rounded-2xl p-6">
+      <h2 className="text-[24px] font-bold mb-4">Create proposal</h2>
 
       {!canCreate && totalFunds > BigInt(0) && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-          <p className="text-yellow-800 text-sm">
-            Necesitas al menos el 10% del balance total ({formatEther(totalFunds / BigInt(10))} ETH) para crear propuestas.
-            Tu balance: {formatEther(userBalance)} ETH
+        <div className="bg-[#f3f3f3] rounded-xl p-4 mb-4">
+          <p className="text-[14px] text-[#5e5e5e]">
+            You need at least 10% of the total balance ({formatEther(totalFunds / BigInt(10))} ETH) to create proposals.
+            Your balance: {formatEther(userBalance)} ETH
           </p>
         </div>
       )}
 
       <div className="space-y-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Dirección del beneficiario</label>
+          <label className="block text-[14px] font-medium text-[#5e5e5e] mb-1">Recipient address</label>
           <input
             type="text"
             placeholder="0x..."
             value={recipient}
             onChange={(e) => setRecipient(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-[#efefef] rounded-lg px-4 py-2.5 text-[14px] font-mono focus:outline-none focus:ring-2 focus:ring-black"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Cantidad (ETH)</label>
+            <label className="block text-[14px] font-medium text-[#5e5e5e] mb-1">Amount (ETH)</label>
             <input
               type="number"
               step="0.01"
@@ -79,17 +79,17 @@ export default function CreateProposal() {
               placeholder="0.0"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-[#efefef] rounded-lg px-4 py-2.5 text-[16px] focus:outline-none focus:ring-2 focus:ring-black"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Plazo (días)</label>
+            <label className="block text-[14px] font-medium text-[#5e5e5e] mb-1">Deadline (days)</label>
             <input
               type="number"
               min="1"
               value={deadlineDays}
               onChange={(e) => setDeadlineDays(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-[#efefef] rounded-lg px-4 py-2.5 text-[16px] focus:outline-none focus:ring-2 focus:ring-black"
             />
           </div>
         </div>
@@ -97,17 +97,17 @@ export default function CreateProposal() {
         <button
           onClick={handleCreate}
           disabled={loading || !recipient || !amount || !canCreate}
-          className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors cursor-pointer"
+          className="w-full bg-black hover:bg-[#282828] disabled:bg-[#afafaf] text-white text-[16px] font-medium py-2.5 px-4 rounded-full transition-colors cursor-pointer"
         >
-          {loading ? "Creando..." : "Crear Propuesta"}
+          {loading ? "Creating..." : "Create proposal"}
         </button>
       </div>
 
       {txStatus === "success" && (
-        <p className="text-green-600 text-sm mt-2">Propuesta creada correctamente</p>
+        <p className="text-[14px] text-[#5e5e5e] mt-2">Proposal created successfully</p>
       )}
       {txStatus === "error" && (
-        <p className="text-red-600 text-sm mt-2">{errorMsg}</p>
+        <p className="text-[14px] text-[#5e5e5e] mt-2">{errorMsg}</p>
       )}
     </div>
   );

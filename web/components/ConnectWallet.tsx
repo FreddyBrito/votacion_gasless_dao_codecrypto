@@ -10,10 +10,10 @@ export default function ConnectWallet() {
     return (
       <div className="flex items-center gap-3">
         <div className="text-right">
-          <p className="text-sm text-gray-500">Balance en DAO</p>
-          <p className="font-mono font-bold">{formatEther(userBalance)} ETH</p>
+          <p className="text-[12px] text-[#afafaf]">DAO balance</p>
+          <p className="text-[16px] font-bold">{formatEther(userBalance)} ETH</p>
         </div>
-        <div className="bg-green-100 text-green-800 px-3 py-1.5 rounded-full text-sm font-mono">
+        <div className="bg-[#efefef] text-black px-4 py-1.5 rounded-full text-[14px] font-medium">
           {account.slice(0, 6)}...{account.slice(-4)}
         </div>
       </div>
@@ -25,11 +25,11 @@ export default function ConnectWallet() {
       <button
         onClick={connect}
         disabled={isConnecting}
-        className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2 px-6 rounded-lg transition-colors cursor-pointer"
+        className="bg-black hover:bg-[#282828] disabled:bg-[#afafaf] text-white text-[16px] font-medium py-2.5 px-6 rounded-full transition-colors cursor-pointer"
       >
-        {isConnecting ? "Conectando..." : "Conectar MetaMask"}
+        {isConnecting ? "Connecting..." : "Connect MetaMask"}
       </button>
-      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+      {error && <p className="text-[#5e5e5e] text-[14px] mt-1">{error}</p>}
     </div>
   );
 }

@@ -47,23 +47,23 @@ export default function ProposalList() {
 
   if (loading) {
     return (
-      <div className="text-center py-8 text-gray-500">
-        Cargando propuestas...
+      <div className="text-center py-8 text-[16px] text-[#afafaf]">
+        Loading proposals...
       </div>
     );
   }
 
   if (proposals.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-400">
-        No hay propuestas creadas todavía
+      <div className="text-center py-8 text-[16px] text-[#afafaf]">
+        No proposals created yet
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold">Propuestas ({proposals.length})</h2>
+      <h2 className="text-[24px] font-bold">Proposals ({proposals.length})</h2>
       {proposals.map((p) => (
         <ProposalCard key={Number(p.id)} proposal={p} onRefresh={fetchProposals} />
       ))}
