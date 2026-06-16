@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Foundry
+sc/cache/
+sc/out/
+sc/docs/
+sc/lib/
+sc/broadcast/*/31337/
+sc/broadcast/**/dry-run/
+
+# Next.js
+web/.next/
+web/out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
