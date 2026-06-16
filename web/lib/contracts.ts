@@ -12,10 +12,10 @@ export const FORWARDER_ABI = [
 
 export const DAO_ABI = [
   "function fundDAO() payable",
-  "function createProposal(address recipient, uint256 amount, uint256 deadline) external",
+  "function createProposal(string title, string description, address recipient, uint256 amount, uint256 deadline) external",
   "function vote(uint256 proposalId, uint8 voteType) external",
   "function executeProposal(uint256 proposalId) external",
-  "function getProposal(uint256 proposalId) view returns (uint256 id, address recipient, uint256 amount, uint256 deadline, uint256 votesFor, uint256 votesAgainst, uint256 votesAbstain, bool executed)",
+  "function getProposal(uint256 proposalId) view returns (uint256 id, string title, string description, address recipient, uint256 amount, uint256 deadline, uint256 votesFor, uint256 votesAgainst, uint256 votesAbstain, bool executed)",
   "function getUserBalance(address user) view returns (uint256)",
   "function getProposalState(uint256 proposalId) view returns (uint8)",
   "function getVoteOf(uint256 proposalId, address voter) view returns (uint8)",
@@ -24,7 +24,7 @@ export const DAO_ABI = [
   "function totalFunds() view returns (uint256)",
   "function userBalance(address) view returns (uint256)",
   "event DAOFunded(address indexed funder, uint256 amount)",
-  "event ProposalCreated(uint256 indexed id, address indexed recipient, uint256 amount, uint256 deadline)",
+  "event ProposalCreated(uint256 indexed id, string title, address indexed recipient, uint256 amount, uint256 deadline)",
   "event Voted(uint256 indexed id, address indexed voter, uint8 voteType)",
   "event ProposalExecuted(uint256 indexed id, address indexed recipient, uint256 amount)",
 ] as const;
@@ -43,6 +43,8 @@ export enum ProposalState {
 
 export interface Proposal {
   id: bigint;
+  title: string;
+  description: string;
   recipient: string;
   amount: bigint;
   deadline: bigint;

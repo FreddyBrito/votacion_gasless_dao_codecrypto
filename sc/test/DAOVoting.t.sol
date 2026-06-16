@@ -112,12 +112,14 @@ contract DAOVotingTest is Test {
         uint256 deadline = block.timestamp + 7 days;
 
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         assertEq(dao.proposalCount(), 1);
 
-        (uint256 id, address recipient, uint256 amount, uint256 d,,,,) = dao.getProposal(1);
+        (uint256 id, string memory title, string memory desc, address recipient, uint256 amount, uint256 d,,,,) = dao.getProposal(1);
         assertEq(id, 1);
+        assertEq(title, "Fund research");
+        assertEq(desc, "Allocate 1 ETH for R&D");
         assertEq(recipient, carol);
         assertEq(amount, 1 ether);
         assertEq(d, deadline);
@@ -126,7 +128,7 @@ contract DAOVotingTest is Test {
     function test_CreateProposal_Revert_NotEnoughBalance() public {
         vm.prank(dave);
         vm.expectRevert(abi.encodeWithSelector(DAOVoting.NotProposer.selector, 1.5 ether, uint256(0)));
-        dao.createProposal(carol, 1 ether, block.timestamp + 1 days);
+        dao.createProposal("Test", "Desc", carol, 1 ether, block.timestamp + 1 days);
     }
 
     function test_CreateProposal_Revert_DaveCannotCreate() public {
@@ -137,7 +139,7 @@ contract DAOVotingTest is Test {
 
         vm.prank(dave);
         vm.expectRevert(abi.encodeWithSelector(DAOVoting.NotProposer.selector, 1.51 ether, 0.1 ether));
-        dao.createProposal(carol, 1 ether, block.timestamp + 1 days);
+        dao.createProposal("Test", "Desc", carol, 1 ether, block.timestamp + 1 days);
     }
 
     // ─── Vote ─────────────────────────────────────────────
@@ -145,12 +147,12 @@ contract DAOVotingTest is Test {
     function test_Vote_For() public {
         uint256 deadline = block.timestamp + 7 days;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         vm.prank(bob);
         dao.vote(1, DAOVoting.VoteType.For);
 
-        (,,,,uint256 votesFor,,,) = dao.getProposal(1);
+        (,,,,,,uint256 votesFor,,,) = dao.getProposal(1);
         assertEq(votesFor, 1);
         assertTrue(dao.hasVoted(1, bob));
         assertEq(uint8(dao.getVoteOf(1, bob)), uint8(DAOVoting.VoteType.For));
@@ -159,41 +161,41 @@ contract DAOVotingTest is Test {
     function test_Vote_Against() public {
         uint256 deadline = block.timestamp + 7 days;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         vm.prank(alice);
         dao.vote(1, DAOVoting.VoteType.Against);
 
-        (,,,,,uint256 votesAgainst,,) = dao.getProposal(1);
+        (,,,,,,,uint256 votesAgainst,,) = dao.getProposal(1);
         assertEq(votesAgainst, 1);
     }
 
     function test_Vote_Abstain() public {
         uint256 deadline = block.timestamp + 7 days;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         vm.prank(bob);
         dao.vote(1, DAOVoting.VoteType.Abstain);
 
-        (,,,,,,uint256 votesAbstain,) = dao.getProposal(1);
+        (,,,,,,,,uint256 votesAbstain,) = dao.getProposal(1);
         assertEq(votesAbstain, 1);
     }
 
     function test_Vote_ChangeVote() public {
         uint256 deadline = block.timestamp + 7 days;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         vm.startPrank(bob);
         dao.vote(1, DAOVoting.VoteType.For);
-        (,,,,uint256 vF,,,) = dao.getProposal(1);
+        (,,,,,,uint256 vF,,,) = dao.getProposal(1);
         assertEq(vF, 1);
 
         dao.vote(1, DAOVoting.VoteType.Against);
         vm.stopPrank();
 
-        (,,,,uint256 vF2, uint256 vA,,) = dao.getProposal(1);
+        (,,,,,,uint256 vF2, uint256 vA,,) = dao.getProposal(1);
         assertEq(vF2, 0);
         assertEq(vA, 1);
         assertEq(uint8(dao.getVoteOf(1, bob)), uint8(DAOVoting.VoteType.Against));
@@ -208,7 +210,7 @@ contract DAOVotingTest is Test {
     function test_Vote_Revert_AfterDeadline() public {
         uint256 deadline = block.timestamp + 1 hours;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         vm.warp(deadline + 1);
 
@@ -220,7 +222,7 @@ contract DAOVotingTest is Test {
     function test_Vote_Revert_NoBalance() public {
         uint256 deadline = block.timestamp + 7 days;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         vm.prank(dave);
         vm.expectRevert(abi.encodeWithSelector(DAOVoting.InsufficientBalance.selector, 1, uint256(0)));
@@ -232,7 +234,7 @@ contract DAOVotingTest is Test {
     function test_ExecuteProposal_Approved() public {
         uint256 deadline = block.timestamp + 1 hours;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         vm.deal(carol, 5 ether);
         vm.startPrank(carol);
@@ -255,14 +257,14 @@ contract DAOVotingTest is Test {
 
         assertEq(carol.balance - carolBalanceBefore, 1 ether);
         assertEq(dao.totalFunds(), 19 ether);
-        (,,,,,,,bool executed) = dao.getProposal(1);
+        (,,,,,,,,,bool executed) = dao.getProposal(1);
         assertTrue(executed);
     }
 
     function test_ExecuteProposal_Defeated() public {
         uint256 deadline = block.timestamp + 1 hours;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         vm.prank(alice);
         dao.vote(1, DAOVoting.VoteType.For);
@@ -282,7 +284,7 @@ contract DAOVotingTest is Test {
     function test_ExecuteProposal_Revert_NotDeadlinePassed() public {
         uint256 deadline = block.timestamp + 1 hours;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         vm.prank(alice);
         dao.vote(1, DAOVoting.VoteType.For);
@@ -297,7 +299,7 @@ contract DAOVotingTest is Test {
     function test_ExecuteProposal_Revert_SecurityPeriodNotElapsed() public {
         uint256 deadline = block.timestamp + 1 hours;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         vm.prank(alice);
         dao.vote(1, DAOVoting.VoteType.For);
@@ -312,7 +314,7 @@ contract DAOVotingTest is Test {
     function test_ExecuteProposal_Revert_AlreadyExecuted() public {
         uint256 deadline = block.timestamp + 1 hours;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         vm.prank(alice);
         dao.vote(1, DAOVoting.VoteType.For);
@@ -338,7 +340,7 @@ contract DAOVotingTest is Test {
     function test_GaslessVote() public {
         uint256 deadline = block.timestamp + 7 days;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         bytes memory voteData = abi.encodeCall(DAOVoting.vote, (1, DAOVoting.VoteType.For));
         uint48 reqDeadline = uint48(block.timestamp + 1 hours);
@@ -352,14 +354,14 @@ contract DAOVotingTest is Test {
 
         assertTrue(dao.hasVoted(1, bob));
         assertEq(uint8(dao.getVoteOf(1, bob)), uint8(DAOVoting.VoteType.For));
-        (,,,,uint256 votesFor,,,) = dao.getProposal(1);
+        (,,,,,,uint256 votesFor,,,) = dao.getProposal(1);
         assertEq(votesFor, 1);
     }
 
     function test_GaslessVote_Revert_InvalidSignature() public {
         uint256 deadline = block.timestamp + 7 days;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         bytes memory voteData = abi.encodeCall(DAOVoting.vote, (1, DAOVoting.VoteType.For));
         uint48 reqDeadline = uint48(block.timestamp + 1 hours);
@@ -375,7 +377,7 @@ contract DAOVotingTest is Test {
     function test_GaslessVote_Revert_ExpiredRequest() public {
         uint256 deadline = block.timestamp + 7 days;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         bytes memory voteData = abi.encodeCall(DAOVoting.vote, (1, DAOVoting.VoteType.For));
         uint48 reqDeadline = uint48(block.timestamp + 1 hours);
@@ -397,7 +399,7 @@ contract DAOVotingTest is Test {
 
         uint256 deadline = block.timestamp + 7 days;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         bytes memory voteData = abi.encodeCall(DAOVoting.vote, (1, DAOVoting.VoteType.For));
         uint48 reqDeadline = uint48(block.timestamp + 1 hours);
@@ -421,7 +423,7 @@ contract DAOVotingTest is Test {
 
         uint256 deadline = block.timestamp + 7 days;
         vm.prank(alice);
-        dao.createProposal(carol, 2 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 2 ETH for R&D", carol, 2 ether, deadline);
 
         vm.prank(alice);
         dao.vote(1, DAOVoting.VoteType.For);
@@ -435,7 +437,7 @@ contract DAOVotingTest is Test {
         vm.prank(alice);
         dao.vote(1, DAOVoting.VoteType.Against);
 
-        (,,,,uint256 vF, uint256 vA,,) = dao.getProposal(1);
+        (,,,,,,uint256 vF, uint256 vA,,) = dao.getProposal(1);
         assertEq(vF, 1);
         assertEq(vA, 2);
 
@@ -451,7 +453,7 @@ contract DAOVotingTest is Test {
     function test_ExecutionAfterVoteChange_Approved() public {
         uint256 deadline = block.timestamp + 1 hours;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         vm.prank(alice);
         dao.vote(1, DAOVoting.VoteType.For);
@@ -460,7 +462,7 @@ contract DAOVotingTest is Test {
         vm.prank(bob);
         dao.vote(1, DAOVoting.VoteType.For);
 
-        (,,,,uint256 vF, uint256 vA,,) = dao.getProposal(1);
+        (,,,,,,uint256 vF, uint256 vA,,) = dao.getProposal(1);
         assertEq(vF, 2);
         assertEq(vA, 0);
 
@@ -477,14 +479,14 @@ contract DAOVotingTest is Test {
     function test_GetProposalState_Active() public {
         uint256 deadline = block.timestamp + 7 days;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
         assertEq(uint8(dao.getProposalState(1)), uint8(DAOVoting.ProposalState.Active));
     }
 
     function test_GetProposalState_Defeated() public {
         uint256 deadline = block.timestamp + 1 hours;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         vm.prank(bob);
         dao.vote(1, DAOVoting.VoteType.Against);
@@ -496,7 +498,7 @@ contract DAOVotingTest is Test {
     function test_GetProposalState_Executable() public {
         uint256 deadline = block.timestamp + 1 hours;
         vm.prank(alice);
-        dao.createProposal(carol, 1 ether, deadline);
+        dao.createProposal("Fund research", "Allocate 1 ETH for R&D", carol, 1 ether, deadline);
 
         vm.prank(alice);
         dao.vote(1, DAOVoting.VoteType.For);

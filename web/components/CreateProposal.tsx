@@ -6,9 +6,12 @@ import { parseEther, formatEther } from "ethers";
 
 export default function CreateProposal() {
   const { account, daoContract, userBalance, totalFunds, refreshBalances } = useWeb3();
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
   const [deadlineDays, setDeadlineDays] = useState("7");
+  const [useGasless, setUseGasless] = useState(true);
   const [loading, setLoading] = useState(false);
   const [txStatus, setTxStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -16,16 +19,18 @@ export default function CreateProposal() {
   const canCreate = totalFunds > BigInt(0) && userBalance >= totalFunds / BigInt(10);
 
   const handleCreate = async () => {
-    if (!daoContract || !recipient || !amount) return;
+    if (!daoContract || !title || !recipient || !amount) return;
 
     setLoading(true);
     setTxStatus("pending");
     setErrorMsg("");
     try {
       const deadline = Math.floor(Date.now() / 1000) + Number(deadlineDays) * 86400;
-      const tx = await daoContract.createProposal(recipient, parseEther(amount), deadline);
+      const tx = await daoContract.createProposal(title, description, recipient, parseEther(amount), deadline);
       await tx.wait();
       setTxStatus("success");
+      setTitle("");
+      setDescription("");
       setRecipient("");
       setAmount("");
       setDeadlineDays("7");
@@ -58,6 +63,28 @@ export default function CreateProposal() {
       )}
 
       <div className="space-y-3">
+        <div>
+          <label className="block text-[14px] font-medium text-[#5e5e5e] mb-1">Title</label>
+          <input
+            type="text"
+            placeholder="Proposal title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full bg-[#efefef] rounded-lg px-4 py-2.5 text-[16px] focus:outline-none focus:ring-2 focus:ring-black"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[14px] font-medium text-[#5e5e5e] mb-1">Description</label>
+          <textarea
+            placeholder="Describe the proposal..."
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            className="w-full bg-[#efefef] rounded-lg px-4 py-2.5 text-[14px] resize-none focus:outline-none focus:ring-2 focus:ring-black"
+          />
+        </div>
+
         <div>
           <label className="block text-[14px] font-medium text-[#5e5e5e] mb-1">Recipient address</label>
           <input
@@ -94,12 +121,32 @@ export default function CreateProposal() {
           </div>
         </div>
 
+        <div className="flex items-center justify-between bg-[#f3f3f3] rounded-xl px-4 py-3">
+          <div>
+            <p className="text-[14px] font-medium text-black">Pay gas fee</p>
+            <p className="text-[12px] text-[#afafaf]">Turn off for gasless voting</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setUseGasless(!useGasless)}
+            className={`relative w-12 h-7 rounded-full transition-colors cursor-pointer ${
+              useGasless ? "bg-[#afafaf]" : "bg-black"
+            }`}
+          >
+            <span
+              className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full transition-transform ${
+                useGasless ? "translate-x-0" : "translate-x-5"
+              }`}
+            />
+          </button>
+        </div>
+
         <button
           onClick={handleCreate}
-          disabled={loading || !recipient || !amount || !canCreate}
+          disabled={loading || !title || !recipient || !amount || !canCreate}
           className="w-full bg-black hover:bg-[#282828] disabled:bg-[#afafaf] text-white text-[16px] font-medium py-2.5 px-4 rounded-full transition-colors cursor-pointer"
         >
-          {loading ? "Creating..." : "Create proposal"}
+          {loading ? "Creating..." : useGasless ? "Create proposal (gasless)" : "Create proposal (pay gas)"}
         </button>
       </div>
 

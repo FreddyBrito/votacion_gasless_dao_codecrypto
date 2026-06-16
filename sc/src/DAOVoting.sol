@@ -17,6 +17,8 @@ contract DAOVoting is ERC2771Context {
 
     struct Proposal {
         uint256 id;
+        string  title;
+        string  description;
         address recipient;
         uint256 amount;
         uint256 deadline;
@@ -36,7 +38,7 @@ contract DAOVoting is ERC2771Context {
     mapping(uint256 => mapping(address => bool))      private _hasVoted;
 
     event DAOFunded(address indexed funder, uint256 amount);
-    event ProposalCreated(uint256 indexed id, address indexed recipient, uint256 amount, uint256 deadline);
+    event ProposalCreated(uint256 indexed id, string title, address indexed recipient, uint256 amount, uint256 deadline);
     event Voted(uint256 indexed id, address indexed voter, VoteType voteType);
     event ProposalExecuted(uint256 indexed id, address indexed recipient, uint256 amount);
 
@@ -67,6 +69,8 @@ contract DAOVoting is ERC2771Context {
     }
 
     function createProposal(
+        string calldata title,
+        string calldata description,
         address recipient,
         uint256 amount,
         uint256 deadline
@@ -79,12 +83,14 @@ contract DAOVoting is ERC2771Context {
 
         uint256 id = ++proposalCount;
         Proposal storage p = _proposals[id];
-        p.id        = id;
-        p.recipient = recipient;
-        p.amount    = amount;
-        p.deadline  = deadline;
+        p.id          = id;
+        p.title       = title;
+        p.description = description;
+        p.recipient   = recipient;
+        p.amount      = amount;
+        p.deadline    = deadline;
 
-        emit ProposalCreated(id, recipient, amount, deadline);
+        emit ProposalCreated(id, title, recipient, amount, deadline);
     }
 
     function vote(uint256 proposalId, VoteType voteType) external {
@@ -134,6 +140,8 @@ contract DAOVoting is ERC2771Context {
         view
         returns (
             uint256 id,
+            string memory title,
+            string memory description,
             address recipient,
             uint256 amount,
             uint256 deadline,
@@ -144,7 +152,7 @@ contract DAOVoting is ERC2771Context {
         )
     {
         Proposal storage p = _proposals[proposalId];
-        return (p.id, p.recipient, p.amount, p.deadline, p.votesFor, p.votesAgainst, p.votesAbstain, p.executed);
+        return (p.id, p.title, p.description, p.recipient, p.amount, p.deadline, p.votesFor, p.votesAgainst, p.votesAbstain, p.executed);
     }
 
     function getUserBalance(address user) external view returns (uint256) {

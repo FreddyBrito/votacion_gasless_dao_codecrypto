@@ -23,6 +23,8 @@ export default function ProposalList() {
         const p = await dao.getProposal(i);
         items.push({
           id: p.id,
+          title: p.title,
+          description: p.description,
           recipient: p.recipient,
           amount: p.amount,
           deadline: p.deadline,

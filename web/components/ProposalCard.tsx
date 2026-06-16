@@ -76,7 +76,7 @@ export default function ProposalCard({ proposal, onRefresh }: ProposalCardProps)
       <div className="flex justify-between items-start mb-3">
         <div>
           <span className="text-[12px] text-[#afafaf]">#{id}</span>
-          <h3 className="text-[20px] font-bold">Proposal {id}</h3>
+          <h3 className="text-[20px] font-bold">{proposal.title || `Proposal ${id}`}</h3>
         </div>
         <span
           className="text-[12px] font-medium px-3 py-1 rounded-full"
@@ -85,6 +85,12 @@ export default function ProposalCard({ proposal, onRefresh }: ProposalCardProps)
           {stateInfo.label}
         </span>
       </div>
+
+      {proposal.description && (
+        <p className="text-[14px] text-[#5e5e5e] mb-3 leading-relaxed">
+          {proposal.description}
+        </p>
+      )}
 
       <div className="grid grid-cols-2 gap-3 mb-3 text-[14px]">
         <div>
